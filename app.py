@@ -109,7 +109,7 @@ def save_chat_history(username: str, history: list):
 
 def show_login_page():
     """Renders the login and signup page."""
-    st.title("Welcome to Therapist AI")
+    st.title("Welcome to Gentle Space Men")
     st.write("Please log in or sign up to continue.")
 
     login_tab = st.tabs(["Login"])[0]
@@ -138,7 +138,7 @@ def show_login_page():
 def show_chat_page(agent_graph):
     """Renders the main chat interface."""
     
-    st.title("Therapist AI")
+    st.title("Gentle Space Men")
     st.write(f"Logged in as: **{st.session_state.username}**")
 
     if st.sidebar.button("Logout"):
@@ -207,7 +207,7 @@ def show_chat_page(agent_graph):
 
 def main():
     logged_in = st.session_state.get("logged_in", False)
-    st.set_page_config(page_title="Therapist AI - Login" if not logged_in else "Therapist AI - Chat")
+    st.set_page_config(page_title="Gentle Space Men - Login" if not logged_in else "Gentle Space Men - Chat")
 
     # Initialize agent after set_page_config
     agent_graph = load_agent()
