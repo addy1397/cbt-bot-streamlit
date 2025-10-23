@@ -1,0 +1,7 @@
+streamlit
+langgraph
+langchain-google-genai==1.0.8
+langchain-core==0.3.37
+pydantic
+python-dotenv
+bcrypt  # For secure password hashing
