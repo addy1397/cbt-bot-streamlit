@@ -62,7 +62,7 @@ class RouterOutput(BaseModel):
                             'fearful', 'vulnerable', 'relieved', 'shame']
     
     trauma_flag: Optional[bool]
-    phobia_type: Optional[str]
+    phobia_type: Optional[List[str]]
 
 
 # LangGraph Nodes ------------------
@@ -108,11 +108,13 @@ def router_node(state: AgentState) -> dict:
     
     router_chain = router_prompt | llm | json_parser
     response = router_chain.invoke({"user_message": user_message})
-    intent = response['intent']
-    severity_level = response['severity_level']
-    user_emotion = response['user_emotion']
-    trauma_flag = response['trauma_flag']
-    phobia_type = response['phobia_type']
+    intent = response.get('intent') or 'casual'
+    severity_level = response.get('severity_level') or 'low'
+    user_emotion = response.get('user_emotion') or 'neutral'
+    trauma_flag = response.get('trauma_flag') or False
+    phobia_type = response.get('phobia_type') or []
+    if isinstance(phobia_type, str):
+        phobia_type = [phobia_type]
 
     return {
         'user_message': user_message,
@@ -121,7 +123,8 @@ def router_node(state: AgentState) -> dict:
         'user_emotion': user_emotion,
         'trauma_flag': trauma_flag,
         'phobia_type': phobia_type,
-        'current_step': 'router'
+        'current_step': 'router',
+        'messages': [{'role': 'user', 'content': user_message}]
     }
 
 
