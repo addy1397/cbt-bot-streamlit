@@ -1,6 +1,8 @@
 # Environment variable files
 .env
 
+Backup Code/
+
 # Virtual Environments
 venv/
 env/
