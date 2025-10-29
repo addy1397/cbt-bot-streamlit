@@ -1,40 +1,7 @@
-<<<<<<< HEAD
-# Core LangGraph
-langgraph
-
-# Grapg Visualization
-grandalf
-
-# Core LangChain
-langchain
-langchain-core
-
-# LangChain integrations
-langchain-community
-langchain-google-genai
-
-# LLM Providers
-# Using Gemini(Google) because its free
-google-generativeai
-transformers
-
-# Vector Store & Embedding Utilities
-faiss-cpu
-tiktoken
-
-# Document Loaders
-unstructured  # For UnstructuredWordDocumentLoader (Word, PDFs, etc.)
-python-docx
-pydantic[email]
-
-# Environment Variable Management
-python-dotenv
-
 # FastAPI
 fastapi
 uvicorn
 pyngrok
-=======
 streamlit
 langgraph
 langchain-google-genai==1.0.8
@@ -42,4 +9,17 @@ langchain-core
 pydantic
 python-dotenv
 bcrypt  # For secure password hashing
->>>>>>> a92a3933699216218c53bdef59cc73de12127eb3
+
+# Graph Visualization
+grandalf
+
+# Core LangChain
+langchain
+
+# LangChain integrations
+langchain-community
+
+# LLM Providers
+# Using Gemini(Google) because its free
+google-generativeai
+transformers

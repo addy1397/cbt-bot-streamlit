@@ -1,0 +1,122 @@
+[
+    {
+        "role": "user",
+        "content": "Hello"
+    },
+    {
+        "role": "user",
+        "content": "Hello"
+    },
+    {
+        "role": "ai",
+        "content": "Hey there! \ud83d\udc4b So good to hear from you! How's your day going so far? Anything exciting happening? \ud83d\ude0a"
+    },
+    {
+        "role": "user",
+        "content": "I\u2019ve been feeling so angry lately, like people just don\u2019t get me."
+    },
+    {
+        "role": "user",
+        "content": "I\u2019ve been feeling so angry lately, like people just don\u2019t get me."
+    },
+    {
+        "role": "ai",
+        "content": "It sounds really frustrating when you feel misunderstood. That anger must be tough to carry. Can you tell me more about a recent time you felt this way?"
+    },
+    {
+        "role": "user",
+        "content": "I guess\u2026 it\u2019s more like I feel unappreciated. I keep giving, but no one notices."
+    },
+    {
+        "role": "user",
+        "content": "I guess\u2026 it\u2019s more like I feel unappreciated. I keep giving, but no one notices."
+    },
+    {
+        "role": "ai",
+        "content": "It's understandable to feel unappreciated when your efforts seem to go unnoticed. That must be a heavy feeling. Can you share an example of when you felt this most strongly?"
+    },
+    {
+        "role": "user",
+        "content": "Maybe how I express it. I just shut down when people don\u2019t care."
+    },
+    {
+        "role": "user",
+        "content": "Maybe how I express it. I just shut down when people don\u2019t care."
+    },
+    {
+        "role": "ai",
+        "content": "It sounds like you withdraw when your feelings aren't seen. That's a tough way to cope. What happens for you when you shut down?"
+    },
+    {
+        "role": "user",
+        "content": "Honestly\u2026 uncomfortable. Feels weak."
+    },
+    {
+        "role": "user",
+        "content": "Honestly\u2026 uncomfortable. Feels weak."
+    },
+    {
+        "role": "ai",
+        "content": "It's okay to feel uncomfortable or even weak sometimes. It shows you're being honest with yourself. What makes it feel that way?"
+    },
+    {
+        "role": "user",
+        "content": "sometimes I just wonder \u2014 what\u2019s even the point of all this?"
+    },
+    {
+        "role": "user",
+        "content": "sometimes I just wonder \u2014 what\u2019s even the point of all this?"
+    },
+    {
+        "role": "ai",
+        "content": "It sounds like you're feeling really lost and questioning things right now. That's a heavy place to be. What makes you wonder about the point of it all?"
+    },
+    {
+        "role": "user",
+        "content": "Maybe helping others somehow. I don\u2019t know what that looks like though."
+    },
+    {
+        "role": "user",
+        "content": "Maybe helping others somehow. I don\u2019t know what that looks like though."
+    },
+    {
+        "role": "ai",
+        "content": "I'm having trouble generating a response right now, but I care about what you're going through."
+    },
+    {
+        "role": "user",
+        "content": "Maybe helping others somehow. I don\u2019t know what that looks like though."
+    },
+    {
+        "role": "user",
+        "content": "Maybe helping others somehow. I don\u2019t know what that looks like though."
+    },
+    {
+        "role": "ai",
+        "content": "I'm having trouble generating a response right now, but I care about what you're going through."
+    },
+    {
+        "role": "user",
+        "content": "Maybe helping others somehow. I don\u2019t know what that looks like though."
+    },
+    {
+        "role": "user",
+        "content": "Maybe helping others somehow. I don\u2019t know what that looks like though."
+    },
+    {
+        "role": "ai",
+        "content": "I'm having trouble generating a response right now, but I care about what you're going through."
+    },
+    {
+        "role": "user",
+        "content": "hello"
+    },
+    {
+        "role": "user",
+        "content": "hello"
+    },
+    {
+        "role": "ai",
+        "content": "Oh, I hear you. It's so tough when you feel like you're putting so much out there and it's just not being seen or acknowledged. And shutting down makes perfect sense when you're feeling that way \u2013 it's like a protective shield.\n\nHas that feeling of being unappreciated been a recurring thing for you lately, or is it more recent? I'm here to listen if you want to talk through it. \u2764\ufe0f"
+    }
+]

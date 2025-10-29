@@ -55,7 +55,7 @@ except Exception as e:
 def health_check():
     return {'message': 'ok'}
 
-
+user_sessions = {}
 @app.post("/message", response_model=MessageResponse)
 def handle_message(request: MessageRequest):
     try:
@@ -69,21 +69,35 @@ def handle_message(request: MessageRequest):
         user_id = request.user_id or uuid.uuid4().hex
         user_message = request.user_message.strip()
 
-        state: AgentState = {
-            'user_message': user_message,
-            'user_id': user_id,
-            'messages': [{'role':'user', 'content':user_message}]
-        }
+        # state: AgentState = {
+        #     'user_message': user_message,
+        #     'user_id': user_id,
+        #     'messages': [{'role':'user', 'content':user_message}]
+        # }
 
-        logger.info(f"Initial State Update::::::::::::::::::::::::::::::: {state}")
+        state: AgentState = user_sessions.get(user_id, {
+            "user_id": user_id,
+            "messages": []
+        })
+
+        state["user_message"] = user_message
+        state["messages"].append({"role": "user", "content": user_message})
+
+        logger.info(f" State Update::::::::::::::::::::::::::::::: {state}")
         result = agent_graph.invoke(state)
+
+        ai_message = {'role': 'ai', 'content': result['answer']}
+        state['messages'].append(ai_message)
+
+        user_sessions[user_id] = state
+
         final_agent_response = result.get("answer", "I'm sorry, I couldn't process that request.")
         logger.info(f"Agent Response: '{final_agent_response}'")
 
         return MessageResponse(
             agent_response=final_agent_response,
             user_id=user_id,
-            state=result
+            state=state
         )
     
     except Exception as e:
