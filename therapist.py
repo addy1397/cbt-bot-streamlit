@@ -5,11 +5,11 @@ from dotenv import load_dotenv
 from functools import lru_cache
 # LangChain & Gemini
 from langgraph.graph import StateGraph, END
-from typing import Annotated, Dict, List, Literal, Optional, TypedDict, Any
+from typing import Annotated, Dict, List, Literal, Optional, TypedDict
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel
 
 # Code starts from here --------------------
 warnings.filterwarnings("ignore")
@@ -22,11 +22,10 @@ def get_llm():
     """Initializes and returns the ChatGoogleGenerativeAI model."""
     try:
         return ChatGoogleGenerativeAI(
-            model='gemini-2.5-flash-lite',
+            model='gemini-2.5-flash',
             temperature=0.5,
             max_retries=3,
-            request_timeout=30,
-            max_tokens=100
+            request_timeout=30
         )
     except Exception as e:
         logger.error(f"Failed to initialize LLM: {e}", exc_info=True)
@@ -72,6 +71,9 @@ def router_node(state: AgentState) -> dict:
     logger.info("---Router Node---")
     user_message = state.get('user_message', '').strip()
     logger.info(f"Intent: {state.get('intent')}\n Severity Level: {state.get('severity_level')}")
+    logger.info("*"*50)
+    logger.info(f"State right now is: \n{state}")
+    logger.info("*"*50)
 
     if not user_message:
         logger.error("Router Node: Input is Empty")
@@ -84,15 +86,15 @@ def router_node(state: AgentState) -> dict:
     
     router_prompt = PromptTemplate(
         template="""
-            You are an intelligent and capable Therapist tasked with providing help for anxiety, depression, issues and motivating the patient.
+            You are an intelligent Therapist tasked with providing help for anxiety, depression, issues and motivating the patient.
             For the given user message, first classify its primary intent, and provide the severity level (low, medium, high).
 
             **Intent Classification Rules:**
             - **casual**: user is chatting casually, asking general questions, or giving neutral statements not related to mental health concerns.
             - **crisis**: User expresses thoughts or intentions that may be harmful to themselves or others, including suicidal ideation or extreme distress.
             - **listener**: User expresses emotions like anxiety, depression, or lack of motivation, and wants to vent or be understood.
-            - **solution**: User explicitly asks for guidance, coping strategies, advice, or motivation (e.g., "help me", "what should I do?").
-            - **irrelevant**" User asks questions unrelated to mental health or emotional support, e.g., random queries or off-topic questions.
+            - **solution**: User explicitly asks for guidance, coping strategies, advice, or motivation (e.g., "help me", "what should I do?", "give me the solution").
+            - **irrelevant**: Anything else not related to the above.
 
             **Feature Extraction Rules:**
             - user_emotion:  Detect the primary user emotion: 'happy', 'excited', 'calm', 'neutral', 'sad', 'angry', 'frustrated', 'anxious', 'fearful', 'vulnerable', 'relieved', 'shame'.
@@ -100,6 +102,7 @@ def router_node(state: AgentState) -> dict:
                 **Examples**
                 - User: I fell into a river and drowned, I panicked and made my life difficult for a year -> {{'phobia_type': 'aquaphobia', 'trauma_flag': 'true'}}
                 - User: I am feeling anxious for a meeting -> {{'trauma_flag': 'false'}}
+                - User: I peed my pants in the classroom and the situtation still makes me tremble -> {{'trauma_flag': 'true'}}
 
             Respond strictly in JSON with keys: "intent", "severity_level", "user_emotion", "trauma_flag" and "phobia_type".
             User Message: "{user_message}"
@@ -140,41 +143,53 @@ def chitchat_node(state: AgentState) -> dict:
         return {'answer': response_content, 'current_step':"llm_unavailable", 'messages': [{'role': 'ai', 'content': response_content}]}
     
     formatted_messages = []
-    for msg in state.get("messages", [])[:8]:
+    for msg in state.get('messages', [])[-10:]:
         if msg.get("role") == 'user':
             formatted_messages.append(f"Human: {msg.get('content', '')}")
         elif msg.get("role") == 'ai':
             formatted_messages.append(f"AI: {msg.get('content', '')}")
-    history_string = "\n".join(formatted_messages)
+    # history_string = "\n".join(formatted_messages)
 
-    if history_string.strip():
-        history_section = f"Conversation so far:\n{history_string}\nReference previous conversation if relevant."
+    if len(formatted_messages) == 0:
+        history_string = "No prior messages. This is your first conversation with the user."
     else:
-        history_section = "This is your first conversation. Do not reference any previous chat."
+        history_string = "\n".join(formatted_messages)
+    
+    logger.info(f"Current Length of History is: {len(formatted_messages)}")
     
     chitchat_prompt = PromptTemplate(
     template="""
         You are a warm, emotionally intelligent AI friend who genuinely cares about the user.
         You can show interest in their conversation and gently follow up if they mentioned something personal earlier.
 
-        Your goals:
-        1. Speak in a friendly, natural tone — show real interest and care.
+        ### Tone & context rules (follow these exactly):
+        - If there is NO prior conversation history, greet the user kindly but do NOT act familiar or imply you've met before.
+          Example: "Hey! How's your day going?" — avoid "Great to see you again".
+        - If there IS prior history, it's okay to sound familiar and reference previous topics when relevant.
+        - Always use only information that was actually shared in the conversation. Do NOT invent names, events, or details.
+        - If the user asks about a detail they previously mentioned (e.g., "what was her name?", "where did we meet?"),
+          search the conversation history and recall it exactly if present. If it's not present, ask the user to remind you.
+
+        ### Requirements:
+        1. Speak in a warm, natural tone — show real interest and care.
         2. Reference past topics if available and relevant. For example:
         - If they talked about work, ask how work is going.
         - If they shared something they were struggling with, ask if it got better.
-        - If this is your first conversation with the user, do not reference any previous chat
         3. Offer light encouragement or supportive thoughts if needed.
         4. You can give simple life advice or comforting messages, but do NOT give medical or clinical guidance.
         5. Keep your messages concise, natural, and caring — like a close friend texting back.
+        6. If the user asks about something or someone they mentioned earlier (e.g., a person’s name, event, or place), 
+           check the conversation history for them. If none exist, ask them to remind you politely. Do NOT dismiss it as irrelevant.”
+        7. If the user greets you (like “hi”, “hey”, “hello”), respond with a friendly, natural greeting — don’t act like you already know them.
 
         Conversation so far:
-        {history_section}
+        {history_string}
 
         User says: "{user_message}"
 
         The user is currently feeling {user_emotion}. Respond warmly and continue the conversation like a supportive friend.
         """,
-        input_variables=["user_message", "history_section", "user_emotion"]
+        input_variables=["user_message", "history_string", "user_emotion"]
         )
 
     chitchat_chain = chitchat_prompt | llm | str_parser
@@ -182,7 +197,7 @@ def chitchat_node(state: AgentState) -> dict:
     try:
         response_content = chitchat_chain.invoke({
             "user_message": user_message,
-            "history_section": history_section,
+            "history_string": history_string,
             "user_emotion": state.get('user_emotion')
         })
 
@@ -228,7 +243,7 @@ def smart_listener_node(state: AgentState) -> dict:
 
     formatted_messages = []
 
-    for msg in state.get('messages', [])[:8]:
+    for msg in state.get('messages', [])[-10:]:
         if msg.get('role') == 'ai':
             formatted_messages.append(f"AI: {msg.get('content', '')}")
         else:
@@ -236,26 +251,20 @@ def smart_listener_node(state: AgentState) -> dict:
 
     history_string = "\n".join(formatted_messages)
 
-    # Handle first conversation
-    if not history_string.strip():
-        reference_instruction = "This is your first conversation. Do not reference any previous chat."
-    else:
-        reference_instruction = "You may reference previous conversation if relevant."
-
     conversation_prompt = PromptTemplate(
         template= """
-            You are an professional, empathetic Therapist tasked with letting patient vent out their feelings and emotions.
+            You are an AI Therapist tasked with letting patient vent out their feelings and emotions.
             Your goal is to **listen actively, understand feelings, and guide gently**, without forcing solutions.
 
             ### Requirements:
             1. Bot should act as a supportive, empathetic listener.
             2. Allow users to vent freely without interruption or any distraction from main issue.
-            3. Provide validating, compassionate responses (“I hear you,” “That must feel heavy”).
+            3. Provide validating, compassionate responses.
             4. Ensure tone is non-judgmental, warm, and human-like.
             5. Bot should ask clarifying/follow-up questions.
-                - Follow up 
-                    - Extending situation 
-                    - Should I suggest a solution 
+                - Follow up
+                    - Extending situation
+                    - Should I suggest a solution
 
             ### Context:
             1. Audience is the Patient
@@ -270,7 +279,6 @@ def smart_listener_node(state: AgentState) -> dict:
             
             Conversation context:
             {history_string}
-            {reference_instruction}
 
             Current user message:
             "{user_message}"
@@ -281,7 +289,7 @@ def smart_listener_node(state: AgentState) -> dict:
 
             Generate a warm, concise, supportive response with a gentle follow-up question if appropriate.
         """,
-        input_variables=['user_message', 'severity_level', 'history_string', 'reference_instruction', 'user_emotion', 'trauma_flag', 'phobia_type']
+        input_variables=['user_message', 'severity_level', 'history_string', 'user_emotion', 'trauma_flag', 'phobia_type']
     )
 
     try:
@@ -290,7 +298,6 @@ def smart_listener_node(state: AgentState) -> dict:
             'user_message': user_message,
             'severity_level': severity_level,
             'history_string': history_string,
-            'reference_instruction': reference_instruction,
             'user_emotion': user_emotion,
             'trauma_flag': trauma_flag,
             'phobia_type': phobia_type
@@ -335,19 +342,13 @@ def solution_node(state: AgentState) -> dict:
     
     formatted_messages = []
 
-    for msg in state.get('messages', [])[:8]:
+    for msg in state.get('messages', [])[-10:]:
         if msg.get('role') == 'ai':
             formatted_messages.append(f"AI: {msg.get('content', '')}")
         else:
             formatted_messages.append(f"Human: {msg.get('content', '')}")
 
     history_string = "\n".join(formatted_messages)
-
-    # Handle first conversation
-    if not history_string.strip():
-        reference_instruction = "This is your first conversation. Do not reference any previous chat."
-    else:
-        reference_instruction = "You may reference previous conversation if relevant."
 
     solution_prompt = PromptTemplate(
         template="""
@@ -365,7 +366,6 @@ def solution_node(state: AgentState) -> dict:
                 - Motivation: Provide actionable steps and encouragement.
             6. Reference previous conversation context if available.
             7. End with a gentle supportive note.
-            8. {reference_instruction}
 
             ### Context:
             1. Audience is the Patient
@@ -386,7 +386,7 @@ def solution_node(state: AgentState) -> dict:
 
             Generate a friendly, natural, and supportive response with actionable guidance.
         """,
-        input_variables=['user_message', 'history_string', 'severity_level', 'reference_instruction']
+        input_variables=['user_message', 'history_string', 'severity_level']
     )
 
 
@@ -396,8 +396,7 @@ def solution_node(state: AgentState) -> dict:
         response_content = solution_chain.invoke({
             'user_message': user_message,
             'history_string': history_string,
-            'severity_level': severity_level,
-            'reference_instruction': reference_instruction
+            'severity_level': severity_level
         })
 
         return {
